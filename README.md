@@ -1,6 +1,8 @@
 # Prompt Optimizer
 
-Strumento a riga di comando in Python che riscrive un prompt applicando una knowledge base di tecniche di prompt engineering, costruita a marzo 2026 a partire da paper e guide ufficiali.
+Strumento a riga di comando in Python che riscrive un prompt applicando una knowledge base di tecniche di prompt engineering, costruita a partire da paper e guide ufficiali.
+
+L'idea risale al 2024, ai primi mesi di uso degli LLM; questa versione, con la knowledge base attuale e il codice, è di marzo–maggio 2026.
 
 ## Cosa fa
 
