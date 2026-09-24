@@ -1,0 +1,367 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "created": "2026-03-09",
+    "description": "Knowledge base per Prompt Optimizer - 7 tecniche vitali Pareto",
+    "update_frequency": "semestrale",
+    "sources": "arXiv, Anthropic, OpenAI, GitHub repos 2025-2026"
+  },
+  
+  "core_principles": {
+    "pareto_rule": "7 tecniche producono 80% miglioramenti",
+    "priority_order": [
+      "clear_instructions",
+      "context_engineering",
+      "structured_format",
+      "chain_of_thought",
+      "few_shot",
+      "role_prompting",
+      "iterative_testing"
+    ],
+    "measurement_first": "Sempre definire metriche prima di ottimizzare"
+  },
+
+  "techniques": [
+    {
+      "id": "clear_instructions",
+      "name": "Clear Instructions & Constraints",
+      "priority": 1,
+      "pareto_core": true,
+      "applicability": 1.0,
+      "metrics": {
+        "error_reduction": 0.31,
+        "relevance_increase": 0.30,
+        "hallucination_mitigation": "qualitativo_significativo"
+      },
+      "detection_triggers": [
+        "vago",
+        "ambiguo",
+        "richiesta generica",
+        "mancano vincoli",
+        "nessun formato output specificato"
+      ],
+      "transformation_rules": {
+        "add_task_description": "Specificare esattamente l'obiettivo in 1-2 frasi",
+        "add_constraints": [
+          "Lunghezza massima output (es. 200 parole)",
+          "Cosa includere/escludere",
+          "Tone/style richiesto",
+          "Formato output (lista, paragrafi, JSON)"
+        ],
+        "exploratory_exception": "Per prompt esplorativi ('dimmi tutto su X', 'spiegami Y', 'parlami di Z'), NON aggiungere vincoli sui contenuti specifici da coprire e NON inventare vincoli di estensione o formato (es. lunghezze minime) se l'utente non li ha chiesti. Non inventare sotto-argomenti o dettagli di dominio. Lasciare il prompt aperto all'esplorazione completa.",
+        "add_uncertainty_handling": "Se dati insufficienti, scrivi 'Informazioni insufficienti per [X]' invece di speculare",
+        "template": "TASK: [descrizione chiara]\n\nVINCOLI:\n- [constraint 1]\n- [constraint 2]\n- [constraint 3]\n\nOUTPUT FORMAT: [specifica formato]\n\n[input utente]"
+      },
+      "example": {
+        "before": "Scrivi un piano marketing",
+        "after": "TASK: Crea un piano marketing per lancio prodotto SaaS B2B\n\nVINCOLI:\n- Focus: primi 90 giorni post-launch\n- Budget: €50k\n- Target: PMI italiane 50-200 dipendenti\n- Includi: 3 canali principali, timeline, KPI\n- Escludi: dettagli esecuzione tattica, budget granulare per attività\n- Lunghezza: max 500 parole\n\nOUTPUT FORMAT:\n## Obiettivi (2-3 bullet)\n## Strategia Canali (per canale: rationale, tattiche, KPI)\n## Timeline 90gg\n## Budget Allocation (%)"
+      },
+      "when_to_use": "Sempre, base universale per ogni prompt"
+    },
+
+    {
+      "id": "context_engineering",
+      "name": "Context Engineering (RTFC)",
+      "priority": 2,
+      "pareto_core": true,
+      "applicability": 0.80,
+      "metrics": {
+        "accuracy_increase": 0.30,
+        "generic_reduction": 0.42,
+        "multiturn_success": 0.35
+      },
+      "detection_triggers": [
+        "task complesso",
+        "dominio specifico",
+        "manca background",
+        "reference a conversazioni precedenti non fornite",
+        "decisione basata su info non esplicite"
+      ],
+      "transformation_rules": {
+        "add_background": "Fornire contesto storico, situation, stakeholders",
+        "add_data": "Includere tutti i dati rilevanti (numeri, date, nomi)",
+        "add_constraints_context": "Pain points, vincoli, preferenze",
+        "add_examples": "Riferimenti a situazioni simili passate",
+        "structure": "Separare chiaramente CONTEXT da TASK da DATA",
+        "template": "CONTEXT:\n[background, situation, stakeholders]\n\nDATA:\n[tutti i dati rilevanti]\n\nTASK:\n[cosa fare con questi elementi]\n\nOUTPUT:\n[formato desiderato]"
+      },
+      "example": {
+        "before": "Scrivi email follow-up cliente",
+        "after": "CONTEXT:\n- Cliente: TechCorp SRL, PMI 80 dipendenti, settore manifatturiero\n- Contatto: Marco Bianchi, CTO\n- Interazione precedente: demo prodotto 15/02, feedback positivo su UI, concern su costo implementazione\n- Pain point principale: attuale sistema legacy lento (5min load time), team frustrato\n- Competitor valutato: SoftwareX (più economico ma meno features)\n- Decision timeline: entro 30/03\n- Budget range discusso: €30-40k annui\n\nTASK:\nScrivi email follow-up che:\n1. Ringrazia per tempo dedicato a demo\n2. Indirizza concern costo (ROI + caso studio cliente simile)\n3. Differenzia vs SoftwareX (velocità + supporto)\n4. Propone call tecnica 20/03 per discutere implementazione\n\nTONE: professionale, consultivo, focus su risolvere pain point\nLENGTH: 150-200 parole"
+      },
+      "when_to_use": "Task non-triviali, writing, analisi, decision-making"
+    },
+
+    {
+      "id": "structured_format",
+      "name": "Structured Formatting (XML/Markdown)",
+      "priority": 3,
+      "pareto_core": true,
+      "applicability": 0.70,
+      "metrics": {
+        "parsing_accuracy": "qualitativo_miglioramento",
+        "instruction_adherence": 0.20,
+        "consistency": "significativo"
+      },
+      "detection_triggers": [
+        "prompt lungo >200 token",
+        "multiple sezioni logiche",
+        "dati + istruzioni + vincoli misti",
+        "output complesso richiesto",
+        "uso Claude (preferisce XML)"
+      ],
+      "transformation_rules": {
+        "claude_xml": "Usare <task>, <context>, <data>, <instructions>, <constraints>, <output_format>",
+        "gpt_markdown": "Usare ## Headers per separare sezioni",
+        "gemini_markdown": "Preferisce Markdown structure con clear sections",
+        "separate_concerns": "Dati in un tag, istruzioni in altro",
+        "template_claude": "<task>[obiettivo]</task>\n\n<context>\n[background]\n</context>\n\n<data>\n[dati]\n</data>\n\n<instructions>\n1. [step 1]\n2. [step 2]\n</instructions>\n\n<output_format>\n[formato richiesto]\n</output_format>",
+        "template_gpt": "## Task\n[obiettivo]\n\n## Context\n[background]\n\n## Instructions\n1. [step]\n\n## Output Format\n[formato]"
+      },
+      "model_preferences": {
+        "claude": "XML tags (strong preference)",
+        "gpt": "Markdown or XML (entrambi ok)",
+        "gemini": "Markdown (preferito)"
+      },
+      "example": {
+        "before": "Analizza report vendite Q1 con focus su trend regionali e YoY comparison dammi insights in formato executive summary con metriche chiave e raccomandazioni",
+        "after_claude": "<task>Analizza report vendite Q1</task>\n\n<data>\nRegione,Q1_2025,Q1_2024\nNord,€450k,€380k\nCentro,€320k,€310k\nSud,€180k,€195k\n</data>\n\n<instructions>\n1. Calcola crescita YoY per regione\n2. Identifica trend significativi (>10% variance)\n3. Formula 2-3 raccomandazioni strategiche\n</instructions>\n\n<output_format>\n## Executive Summary\n(2-3 frasi sintesi)\n\n## Metriche Chiave\n- Revenue totale: [€]\n- Crescita YoY: [%]\n- Top performer: [regione]\n- Concern: [regione underperforming]\n\n## Raccomandazioni\n1. [azione]\n2. [azione]\n</output_format>"
+      },
+      "when_to_use": "Prompt >200 token, multi-section, Claude (sempre), output strutturati"
+    },
+
+    {
+      "id": "chain_of_thought",
+      "name": "Chain-of-Thought (CoT) Prompting",
+      "priority": 4,
+      "pareto_core": true,
+      "applicability": 0.40,
+      "metrics": {
+        "reasoning_accuracy": 0.45,
+        "mmlu_improvement": 0.19,
+        "math_tasks": 0.50
+      },
+      "detection_triggers": [
+        "problema multi-step",
+        "ragionamento logico",
+        "matematica",
+        "planning complesso",
+        "debugging",
+        "analisi causa-effetto"
+      ],
+      "transformation_rules": {
+        "add_step_instruction": "Aggiungi 'Mostra il tuo ragionamento passo-passo'",
+        "zero_shot_trigger": "Let's think step by step",
+        "few_shot_cot": "Fornire 2-3 esempi con ragionamento esplicito",
+        "thinking_tags": "Per Claude: usa <thinking> tags per reasoning",
+        "template_zero_shot": "[problema]\n\nLet's think step by step:\n1. ",
+        "template_few_shot": "Esempio 1:\nProblema: [P1]\nRagionamento:\n- Step 1: []\n- Step 2: []\nRisposta: [R1]\n\nOra risolvi:\nProblema: [nuovo problema]\nRagionamento:"
+      },
+      "example": {
+        "before": "Se ho 35 anni e mia sorella aveva metà dei miei anni quando io ne avevo 6, quanti anni ha ora?",
+        "after": "Problema: Ho 35 anni. Mia sorella aveva metà dei miei anni quando io ne avevo 6. Quanti anni ha ora mia sorella?\n\nRisolvi mostrando ogni passaggio del ragionamento:\n\nStep 1: Identifica i dati\nStep 2: Calcola età sorella al tempo t=6\nStep 3: Calcola differenza età (costante)\nStep 4: Applica a età attuale\n\nMostra tutti i calcoli."
+      },
+      "when_to_use": "Reasoning, matematica, logica, planning, debugging"
+    },
+
+    {
+      "id": "few_shot",
+      "name": "Few-Shot Prompting",
+      "priority": 5,
+      "pareto_core": true,
+      "applicability": 0.50,
+      "metrics": {
+        "accuracy_gain": 0.33,
+        "vs_zero_shot": 0.35,
+        "consistency": 0.20
+      },
+      "detection_triggers": [
+        "formato output complesso",
+        "task specializzato",
+        "domain-specific patterns",
+        "classificazione",
+        "parsing strutturato",
+        "zero-shot fallisce"
+      ],
+      "transformation_rules": {
+        "num_examples": "2-5 esempi (start con 2, aggiungi se serve)",
+        "example_quality": "Esempi devono essere rappresentativi + edge cases",
+        "format_consistency": "Stesso format per tutti esempi",
+        "template": "Converti secondo questo pattern:\n\nEsempio 1:\nInput: [I1]\nOutput: [O1]\n\nEsempio 2:\nInput: [I2]\nOutput: [O2]\n\n[opzionale: Esempio 3]\n\nOra processa:\nInput: [nuovo input]\nOutput:",
+        "selection_criteria": "Scegli esempi semanticamente simili al task target"
+      },
+      "example": {
+        "before": "Converti nome prodotto in SKU code: Maglietta Blu Cotone",
+        "after": "Converti nome prodotto in formato SKU seguendo pattern:\n\nEsempio 1:\nInput: Maglietta Rossa Lino\nOutput: RED-LIN-MAG-001\n\nEsempio 2:\nInput: Pantaloni Neri Denim\nOutput: BLK-DEN-PAN-002\n\nEsempio 3:\nInput: Giacca Verde Lana\nOutput: GRN-WOL-GIA-003\n\nPattern: [COLORE-MATERIALE-TIPO-ID]\n\nOra processa:\nInput: Maglietta Blu Cotone\nOutput:"
+      },
+      "when_to_use": "Formatting, classification, task specializzati, quando zero-shot fallisce"
+    },
+
+    {
+      "id": "role_prompting",
+      "name": "Role Prompting",
+      "priority": 6,
+      "pareto_core": true,
+      "applicability": 0.30,
+      "metrics": {
+        "domain_accuracy": 0.20,
+        "quality_improvement": "qualitativo"
+      },
+      "detection_triggers": [
+        "task domain-specific",
+        "serve expertise",
+        "legal, medical, tecnico",
+        "analisi professionale",
+        "perspective specifica richiesta"
+      ],
+      "transformation_rules": {
+        "role_definition": "Sei un [ruolo] con [anni] esperienza in [dominio]",
+        "expertise_details": "Specializzato in [sub-dominio], esperto in [skills]",
+        "perspective": "Analizza da punto di vista [stakeholder]",
+        "template": "Sei un [ruolo senior] con [N] anni esperienza in [dominio]. Specializzato in [area]. [Credentials opzionali].\n\n[Task che richiede quella expertise]"
+      },
+      "example": {
+        "before": "Analizza questa clausola contrattuale",
+        "after": "Sei un avvocato senior specializzato in diritto commerciale con 15 anni di esperienza in M&A e contrattualistica societaria. Hai seguito oltre 200 operazioni per PMI italiane.\n\nAnalizza questa clausola di non-compete:\n[clausola]\n\nFornisci:\n1. Interpretazione portata (geografica, temporale, scope)\n2. Enforceability secondo giurisprudenza italiana recente\n3. Rischi per l'acquirente\n4. Red flags legali da indirizzare\n5. Suggerimenti modifiche"
+      },
+      "when_to_use": "Task domain-specific, legal, medical, technical, quando serve expertise"
+    },
+
+    {
+      "id": "iterative_testing",
+      "name": "Iterative Refinement & Testing",
+      "priority": 7,
+      "pareto_core": true,
+      "applicability": 1.0,
+      "metrics": {
+        "accuracy_per_cycle": 0.22,
+        "debug_time_reduction": 0.75,
+        "production_reliability": 0.90
+      },
+      "process": {
+        "step1": "Baseline: crea prompt iniziale, testa su dataset rappresentativo (n>=20), misura accuracy",
+        "step2": "Hypothesis: identifica failure patterns, ipotizza improvement",
+        "step3": "Iterate: modifica prompt, re-test, confronta metriche",
+        "step4": "Deploy: se improvement >5%, deploy nuovo prompt",
+        "step5": "Monitor: traccia performance produzione, ciclo continuo"
+      },
+      "metrics_to_track": [
+        "accuracy",
+        "precision",
+        "recall",
+        "latency_p95",
+        "cost_per_query",
+        "user_satisfaction"
+      ],
+      "tools": {
+        "evaluation": ["Promptfoo", "LangSmith", "Weights & Biases"],
+        "testing": ["pytest + LLM calls", "custom eval scripts"],
+        "monitoring": ["Langfuse", "Helicone", "Portkey"]
+      },
+      "example_workflow": {
+        "iteration_0": {
+          "prompt": "Summarize article in 100 words",
+          "accuracy": 0.67,
+          "issue": "Mancano key insights, troppo generico"
+        },
+        "iteration_1": {
+          "prompt": "Summarize focusing on: business implications, key insight, risks. 100 words max.",
+          "accuracy": 0.78,
+          "improvement": "+11pp"
+        },
+        "iteration_2": {
+          "prompt": "Add 2 few-shot examples of good summaries",
+          "accuracy": 0.86,
+          "improvement": "+8pp"
+        },
+        "decision": "Deploy iteration_2, continue monitoring"
+      },
+      "when_to_use": "Production deployments, high-stakes, prompt usati molte volte"
+    }
+  ],
+
+  "decision_tree": {
+    "description": "Flowchart per selezionare tecniche basato su task type",
+    "nodes": [
+      {
+        "question": "Task richiede ragionamento multi-step?",
+        "yes": ["chain_of_thought", "clear_instructions", "context_engineering"],
+        "no": "continue"
+      },
+      {
+        "question": "Formato output complesso o dominio specifico?",
+        "yes": ["few_shot", "structured_format"],
+        "no": "continue"
+      },
+      {
+        "question": "Task è production/high-stakes?",
+        "yes": ["iterative_testing", "context_engineering", "clear_instructions"],
+        "no": "continue"
+      },
+      {
+        "question": "Serve expertise domain-specific?",
+        "yes": ["role_prompting", "context_engineering"],
+        "no": "apply_core_always"
+      }
+    ],
+    "core_always": [
+      "clear_instructions",
+      "context_engineering",
+      "structured_format"
+    ]
+  },
+
+  "model_specific_notes": {
+    "claude": {
+      "preferences": ["XML tags", "explicit instructions", "no aggressive language"],
+      "avoid": ["NEVER EVER", "YOU MUST", "all-caps emphasis"],
+      "best_practices": "Literal instruction following, use <thinking> tags per reasoning"
+    },
+    "gpt": {
+      "preferences": ["Markdown or XML", "conversational prompts"],
+      "note": "GPT-5 router: 'think hard' triggers reasoning model",
+      "best_practices": "Try zero-shot before few-shot, pin model snapshots"
+    },
+    "gemini": {
+      "preferences": ["Markdown structure", "few-shot over zero-shot"],
+      "note": "2M context window, place critical info at end",
+      "best_practices": "Shorter direct prompts, leverage long context"
+    }
+  },
+
+  "anti_patterns": {
+    "avoid": [
+      "Prompt troppo lunghi (>500 parole senza struttura)",
+      "Informazioni critiche nel mezzo del context (lost in middle effect)",
+      "Istruzioni ambigue o contraddittorie",
+      "Nessun vincolo su output format",
+      "Non testare before deploy production",
+      "Aggressive language (NEVER, ALWAYS ALL CAPS)",
+      "Copy-paste prompt generic senza customizzazione",
+      "Inventare dettagli di dominio specifici non presenti nel prompt originale (es. elencare sotto-argomenti di un tema quando l'utente chiede una panoramica aperta ed esplorativa)"
+    ]
+  },
+
+  "quick_optimization_checklist": [
+    "✓ Task descritto chiaramente?",
+    "✓ Vincoli specificati (length, format, tone)?",
+    "✓ Contesto rilevante fornito?",
+    "✓ Struttura chiara (XML/Markdown per prompt lunghi)?",
+    "✓ Esempi forniti se task complesso?",
+    "✓ Prompt testato su casi rappresentativi?",
+    "✓ Metriche definite per misurare successo?"
+  ],
+
+  "cost_benefit": {
+    "techniques_by_cost": {
+      "low_cost": ["clear_instructions", "structured_format", "zero_shot_cot"],
+      "medium_cost": ["few_shot", "context_engineering"],
+      "high_cost": ["iterative_testing", "self_consistency_sampling"]
+    },
+    "roi_priority": {
+      "highest_roi": ["clear_instructions", "context_engineering", "few_shot"],
+      "high_roi": ["chain_of_thought", "structured_format"],
+      "medium_roi": ["role_prompting", "iterative_testing"]
+    }
+  }
+}
