@@ -51,8 +51,11 @@ def load_knowledge_base(folder_path):
                 data = json.load(f)
                 kb_text += "### REGOLE E TECNICHE CHIAVE ESTRATTE DAL JSON ###\n"
                 for tech in data.get('techniques', []):
-                    kb_text += f"- {tech.get('name', '')}: {tech.get('description', '')}\n"
-                    kb_text += f"  Pattern: {tech.get('pattern', '')}\n"
+                    # Accetta sia when_to_use/transformation_rules (JSON incluso) sia description/pattern.
+                    description = tech.get('description') or tech.get('when_to_use', '')
+                    rules = tech.get('pattern') or '; '.join(str(v) for v in (tech.get('transformation_rules') or {}).values())
+                    kb_text += f"- {tech.get('name', '')}: {description}\n"
+                    kb_text += f"  Regole: {rules}\n"
         except Exception as e:
             pass
 
